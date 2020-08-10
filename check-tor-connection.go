@@ -26,7 +26,7 @@ func (LibTorWrapper) New(ctx context.Context, args ...string) (process.Process, 
 
 func main() {
 	// Start tor with some defaults + elevated verbosity
-	fmt.Println("Starting and registering onion service, please wait a bit...")
+	fmt.Println("Starting tor instance, please wait a bit...")
 	t, err := tor.Start(nil, &tor.StartConf{ProcessCreator: LibTorWrapper{}, DebugWriter: os.Stderr})
 	if err != nil {
 		log.Panicf("Failed to start tor: %v", err)

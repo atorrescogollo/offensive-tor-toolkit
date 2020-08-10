@@ -41,7 +41,7 @@ func main() {
 	}
 	defer onion.Close()
 
-	fmt.Printf("Please use proxychains and chain TOR proxy with %v.onion:80\n", onion.ID)
+	fmt.Printf("SOCKS5 server is listening on %v.onion:80\n", onion.ID)
 
 	// Create a SOCKS5 server
 	cred := socks5.StaticCredentials{"hiddenuser": "hiddenandsupersecretpassword"}

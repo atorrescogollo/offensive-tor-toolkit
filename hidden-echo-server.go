@@ -41,7 +41,7 @@ func main() {
 	}
 	defer onion.Close()
 
-	fmt.Printf("Please open a Tor capable netcat and navigate to %v.onion:80\n", onion.ID)
+	fmt.Printf("Echo server is listening on %v.onion:80\n", onion.ID)
 
 	for {
 		conn, err := onion.Accept()

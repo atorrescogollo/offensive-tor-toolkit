@@ -23,6 +23,12 @@ func (LibTorWrapper) New(ctx context.Context, args ...string) (process.Process, 
 }
 
 func main() {
+	if len(os.Args) != 2 {
+		fmt.Println("Usage " + os.Args[0] + " '<FW_IP>:<FW_PORT>'")
+		return
+	}
+	host := os.Args[1]
+
 	// Start tor with some defaults + elevated verbosity
 	fmt.Println("Starting and registering onion service, please wait a bit...")
 	t, err := tor.Start(nil, &tor.StartConf{ProcessCreator: LibTorWrapper{}, DebugWriter: os.Stderr})
@@ -42,7 +48,6 @@ func main() {
 	}
 	defer onion.Close()
 
-	host := "127.0.0.1:8080"
 	fmt.Printf("Forwarding %v.onion:80 -> %v\n", onion.ID, host)
 
 	for {

