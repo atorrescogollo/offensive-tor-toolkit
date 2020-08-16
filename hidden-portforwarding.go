@@ -2,9 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -38,6 +43,7 @@ func parseArgs() Config {
 	config.TorConfig = tor.StartConf{}
 	config.TorConfig.ProcessCreator = LibTorWrapper{}
 	config.TorConfig.DebugWriter = os.Stderr
+	flag.StringVar(&config.TorConfig.DataDir, "data-dir", "", "Where Tor data is stored. If not defined, a directory is created")
 	var flagHiddenSrvPort int
 	flag.IntVar(&flagHiddenSrvPort, "hidden-port", 80, "Port for onion service")
 	flag.StringVar(&config.Forward, "forward", "", "Where the hidden service should forward packets (local port forwarding). Format: <FW_IP>:<FW_PORT>. This parameter is required")
@@ -55,6 +61,14 @@ func parseArgs() Config {
 		fmt.Fprintf(os.Stderr, "Forward parameter (-forward) is required.\n\n")
 		flag.Usage()
 		os.Exit(1)
+	}
+	if config.TorConfig.DataDir == "" {
+		currentdir, _ := os.Getwd()
+		datadir, err := ioutil.TempDir(currentdir, "data-dir-")
+		if err != nil {
+			log.Panicf("Cannot create data-dir. %v", err)
+		}
+		config.TorConfig.DataDir = datadir
 	}
 	config.TorListenConfig.RemotePorts = []int{flagHiddenSrvPort}
 	return config
@@ -74,6 +88,35 @@ func main() {
 	// Wait at most a few minutes to publish the service
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.Timeout)*time.Second)
 	defer cancel()
+
+	if _, err := os.Stat(config.TorConfig.DataDir + "/keys/onion.pem"); os.IsNotExist(err) {
+		// No key, so force creation
+		// openssl genrsa -out $datadir/keys/onion.pem 1024
+		key, err := rsa.GenerateKey(rand.Reader, 1024)
+		if err != nil {
+			log.Panicf("Failed to generate RSA private key")
+		}
+		config.TorListenConfig.Key = key
+
+		keyfile, err := os.Create(config.TorConfig.DataDir + "/keys/onion.pem")
+		if err != nil {
+			log.Panicf("Cannot save RSA private key. %v", err)
+		}
+		pem.Encode(keyfile, &pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(key),
+		})
+
+	} else {
+		// Found key for onion service
+		buff, err := ioutil.ReadFile(config.TorConfig.DataDir + "/keys/onion.pem")
+		block, _ := pem.Decode(buff)
+		key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			log.Panicf("Wrong private key format")
+		}
+		config.TorListenConfig.Key = key
+	}
 
 	// Create an onion service to listen on any port but show as 80
 	onion, err := t.Listen(ctx, &config.TorListenConfig)

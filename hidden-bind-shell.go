@@ -48,7 +48,6 @@ func parseArgs() Config {
 	config.TorListenConfig = tor.ListenConf{}
 	var flagHiddenSrvPort int
 	flag.IntVar(&flagHiddenSrvPort, "hiddensrvport", 80, "Tor hidden service port where bind-shell will be started")
-	config.TorListenConfig.Detach = true
 
 	flag.IntVar(&config.Timeout, "timeout", 180, "Timeout in seconds for Tor setup")
 	flag.StringVar(&config.BindShellProgram, "bind-shell-program", "/bin/sh", "Program to execute on bind-shell")
@@ -61,6 +60,15 @@ func parseArgs() Config {
 
 	flag.Parse()
 	config.TorListenConfig.RemotePorts = []int{flagHiddenSrvPort}
+
+	if config.TorConfig.DataDir == "" {
+		currentdir, _ := os.Getwd()
+		datadir, err := ioutil.TempDir(currentdir, "data-dir-")
+		if err != nil {
+			log.Panicf("Cannot create data-dir. %v", err)
+		}
+		config.TorConfig.DataDir = datadir
+	}
 	return config
 }
 
@@ -87,12 +95,6 @@ func main() {
 		}
 		config.TorListenConfig.Key = key
 
-		if config.TorConfig.DataDir == "" {
-			currentdir, _ := os.Getwd()
-			if config.TorConfig.DataDir, err = ioutil.TempDir(currentdir, "data-dir-"); err != nil {
-				log.Panicf("Cannot create data-dir. %v", err)
-			}
-		}
 		keyfile, err := os.Create(config.TorConfig.DataDir + "/keys/onion.pem")
 		if err != nil {
 			log.Panicf("Cannot save RSA private key. %v", err)
