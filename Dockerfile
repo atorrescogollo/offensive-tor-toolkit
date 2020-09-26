@@ -9,4 +9,5 @@ COPY . /offensive-tor-toolkit
 WORKDIR /offensive-tor-toolkit
 RUN /offensive-tor-toolkit/.build.sh
 
-ENTRYPOINT ["/bin/bash"]
+COPY ./.entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

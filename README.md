@@ -10,26 +10,36 @@ Una implementación con [Golang](https://golang.org/) cumple con estas necesidad
 - [ipsn/go-libtor](https://github.com/ipsn/go-libtor): Self-contained Tor from Go
 - [cretz/bine](https://github.com/cretz/bine): Go API for using and controlling Tor
 
-## Prerequisitos
-Tras [instalar Golang](https://golang.org/doc/install), instalamos las librerías `ipsn/go-libtor` y `cretz/bine` como se describe [aquí](https://github.com/ipsn/go-libtor#installation-gopath):
+## Compilación
+Para evitar inconvenientes, es recomendable hacer la compilación con docker:
 ```
-$ go get -u -v -x github.com/ipsn/go-libtor
-$ go get -u github.com/cretz/bine/tor
-$ go get -u github.com/armon/go-socks5 # Solo para hidden-socks5.go
+$ docker build -t offensive-tor-toolkit .
+$ docker run -v $(pwd)/dist/:/dist/ -it --rm offensive-tor-toolkit
+$ ls -l dist/
+total 598384
+-rwxr-xr-x 1 root root  22760488 Sep 26 14:42 check-tor-connection
+-rw-r--r-- 1 root root  30746627 Sep 26 14:42 check-tor-connection.b64
+-rwxr-xr-x 1 root root  19960192 Sep 26 14:42 hidden-bind-shell
+-rw-r--r-- 1 root root  26963771 Sep 26 14:42 hidden-bind-shell.b64
+-rwxr-xr-x 1 root root  19819840 Sep 26 14:42 hidden-echo-server
+-rw-r--r-- 1 root root  26774173 Sep 26 14:42 hidden-echo-server.b64
+-rwxr-xr-x 1 root root  19964288 Sep 26 14:42 hidden-portforwarding
+-rw-r--r-- 1 root root  26969303 Sep 26 14:42 hidden-portforwarding.b64
+-rwxr-xr-x 1 root root  20023760 Sep 26 14:42 hidden-socks5
+-rw-r--r-- 1 root root  27049643 Sep 26 14:42 hidden-socks5.b64
+-rw-r--r-- 1 root root 233613307 Sep 26 14:42 offensive-tor-toolkit.tar.gz
+-rwxr-xr-x 1 root root  19438648 Sep 26 14:42 reverse-shell-over-tor
+-rw-r--r-- 1 root root  26259229 Sep 26 14:42 reverse-shell-over-tor.b64
+-rwxr-xr-x 1 root root  19825800 Sep 26 14:42 reverse-shell-over-tor-simplehandler
+-rw-r--r-- 1 root root  26782222 Sep 26 14:42 reverse-shell-over-tor-simplehandler.b64
+-rwxr-xr-x 1 root root  19465568 Sep 26 14:42 tcp2tor-proxy
+-rw-r--r-- 1 root root  26295594 Sep 26 14:42 tcp2tor-proxy.b64
 ```
 
-Ahora, descargamos el repositorio:
-```
-$ git clone https://github.com/atorrescogollo/offensive-tor-toolkit.git
-$ cd offensive-tor-toolkit/
-```
 ## Uso
-La víctima puede tener otro entorno distinto, por lo que vamos a forzar que los binarios se compilen sin dependencias. Esto generará algunos warnings que vamos a ignorar. Para más información, consultar [aquí](https://www.arp242.net/static-go.html).
-
 ### `reverse-shell-over-tor.go`
 Se conecta a un servicio oculto y entrega una shell.
 ```
-$ go build -ldflags="-extldflags=-static" reverse-shell-over-tor.go
 $ ./reverse-shell-over-tor -h
 Usage of reverse-shell-over-tor:
 
@@ -44,7 +54,6 @@ Usage of reverse-shell-over-tor:
 ### `hidden-bind-shell.go`
 Arranca un servicio oculto y entrega una shell a las conexiones entrantes.
 ```
-$ go build -ldflags="-extldflags=-static" hidden-bind-shell.go
 $ ./hidden-bind-shell -h
 Usage of hidden-bind-shell:
 
@@ -61,7 +70,6 @@ Usage of hidden-bind-shell:
 ### `hidden-portforwarding.go`
 Permite la redirección de un puerto de un hidden service a un puerto alcanzable por la víctima.
 ```
-$ go build -ldflags="-extldflags=-static" hidden-portforwarding.go
 $ ./hidden-portforwarding -h
 Usage of hidden-portforwarding:
 
@@ -79,7 +87,6 @@ Usage of hidden-portforwarding:
 ### `hidden-socks5.go`
 Permite la crear un hidden service como proxy SOCKS5.
 ```
-$ go build -ldflags="-extldflags=-static" hidden-socks5.go
 $ ./hidden-socks5 -h
 Usage of hidden-socks5:
 
@@ -98,7 +105,6 @@ Usage of hidden-socks5:
 
 ### `tcp2tor-proxy.go`
 ```
-$ go build -ldflags="-extldflags=-static" tcp2tor-proxy.go
 $ ./tcp2tor-proxy -h
 Usage of tcp2tor-proxy:
 
