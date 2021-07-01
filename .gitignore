@@ -1,1 +1,4 @@
+.devcontainer/
 dist/
+build/
+data-dir-*/
